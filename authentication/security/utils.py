@@ -7,7 +7,7 @@ from authentication.settings import (ALGORITHM,
                                             SECRET_KEY)
 
 
-def validate_token(db, token):
+def get_user_from_token(db, token):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

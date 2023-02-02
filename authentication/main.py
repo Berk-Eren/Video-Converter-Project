@@ -1,9 +1,9 @@
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends, Header, status
 from sqlalchemy.orm import Session
 
 from authentication.database import SessionLocal, engine
 from authentication.database import schemas, crud, models
-from authentication.security.utils import create_token
+from authentication.security.utils import create_token, get_user_from_token
 from authentication.security.schemas import oauth2_scheme
 from authentication.forms import UserCredentials
 
@@ -22,30 +22,21 @@ app = FastAPI()
 
 @app.post("/sign-up")
 def sign_up(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    """db_user = crud.get_user_by_email(db, email=user.email)
+    db_user = crud.get_user_by_email(db, email=user.email)
+
     if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    """
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Email already registered"
+        )
+
     return crud.create_user(db=db, user=user)
 
-@app.post("/validate/")
-def validate_token(header = Header()):
-    pass
+@app.post("/login/")
+def get_access_token(db: Session = Depends(get_db), *, user: UserCredentials = Depends()):
+    user = crud.login_user(db, user.username, user.password)
+    return create_token(user.username)
 
 @app.post("/refresh")
 def refresh_token(header: str | None = Header()):
     pass
-
-@app.post("/login/")
-def login_person(db: Session = Depends(get_db), form_data: UserCredentials = Depends()):
-    user = crud.login_user(db, form_data.username, form_data.password)
-
-    if user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Username or password is wrong. Please try again."
-        )
-
-    encoded_jwt = create_token(user.username)
-
-    return encoded_jwt
