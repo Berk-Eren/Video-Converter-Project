@@ -6,6 +6,9 @@ from . import models, schemas
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
+def get_user_by_name(db: Session, username: str):
+    return db.query(models.User).filter(models.User.username == username).first()
+
 def login_user(db: Session, username: str, password: str):
     return db.query(models.User).filter(models.User.username==username).filter(models.User.password==password).first()
 
