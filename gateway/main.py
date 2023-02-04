@@ -1,14 +1,16 @@
-from fastapi import FastAPI, Body, UploadFile, status, HTTPException, Path, Header
+from fastapi import FastAPI, Body, UploadFile, status, HTTPException, Path, Header, Depends
 from fastapi.responses import JSONResponse, FileResponse
+from fastapi.security.api_key import APIKeyHeader
 
 from gateway.client import auth_client
-from gateway.forms.authentication import UserCreation
+from gateway.forms.authentication import UserCreation, UserCredentials
 from gateway.mongodb.save_file import save_into_db
 from gateway.utils import log_in_user
 from gateway.mq import send_message_to
 
 
 app = FastAPI()
+token_key = APIKeyHeader(name="Authorization")
 
 
 @app.post("/sign-up/")
@@ -23,12 +25,21 @@ def login(user: UserCreation = Body()):
 
     return res.json()
 
+@app.post("/access-token/")
+def get_access_token(user_credentials: UserCredentials):
+    credentials = {
+        "username": user_credentials.username,
+        "password": user_credentials.password
+    }
+    res = auth_client.post("/access-token/", data=credentials)
+    return res.json()
+
 @app.post("/upload/", status_code=status.HTTP_202_ACCEPTED)
 def create_upload_files(
     file: UploadFile,
-    authorization: str = Header(default=None)
+    token: str | None = Depends(token_key)
 ):
-    user_logged_in = log_in_user(authorization)
+    user_logged_in = log_in_user(token)
 
     if user_logged_in:
         is_saved, file_id = save_into_db(file.file)

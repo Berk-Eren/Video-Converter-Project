@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Header, status
+from fastapi import FastAPI, HTTPException, Body, Depends, Header, status
 from sqlalchemy.orm import Session
 
 from authentication.database import SessionLocal, engine
@@ -32,10 +32,20 @@ def sign_up(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     return crud.create_user(db=db, user=user)
 
-@app.post("/login/")
-def get_access_token(db: Session = Depends(get_db), *, user: UserCredentials = Depends()):
+@app.post("/access-token/")
+def get_access_token(user: UserCredentials = Depends(), db: Session = Depends(get_db)):
     user = crud.login_user(db, user.username, user.password)
-    return create_token(user.username)
+    if user:
+        return create_token(user.username)
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        details="Please check your credentials"
+    )
+
+@app.post("/validate/")
+def validate_token(authorization: str = Header(), db: Session = Depends(get_db)):
+    token_type, token = authorization.split()
+    return get_user_from_token(db, token)
 
 @app.post("/refresh")
 def refresh_token(header: str | None = Header()):
