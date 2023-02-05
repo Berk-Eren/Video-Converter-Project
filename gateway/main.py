@@ -42,9 +42,10 @@ def create_upload_files(
     user_logged_in = log_in_user(token)
 
     if user_logged_in:
-        is_saved, file_id = save_into_db(file.file)
+        is_saved, file_obj = save_into_db(file.file)
         if is_saved:
-            send_message_to("video_conversion", str(file_id))
+            file_id = str(file_obj)
+            send_message_to("video_conversion_queue", file_id)
             return JSONResponse(content={
                 "fileId": file_id
             })
@@ -59,13 +60,7 @@ def create_upload_files(
             detail="Please check your credentials"
         )
 
-"""@app.post("/download/{file_id}")
+@app.post("/download/{file_id}", response_class=FileResponse)
 def download_converted_file(file_id: int = Path(ge=0)):
-    file = get_converted_file(file_id)
-    return FileResponse(
-        path="client.py",
-        headers={
-            "Content-Disposition": 'form-data; name="fieldName"; filename="output.mp3"'
-        }
-    )
-"""
+    #file = get_converted_file(file_id)
+    return "out.mp4"
