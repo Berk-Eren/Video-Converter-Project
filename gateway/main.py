@@ -1,10 +1,14 @@
+import os
+import io
+import tempfile
+
 from fastapi import FastAPI, Body, UploadFile, status, HTTPException, Path, Header, Depends
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.security.api_key import APIKeyHeader
 
 from gateway.client import auth_client
 from gateway.forms.authentication import UserCreation, UserCredentials
-from gateway.mongodb.save_file import save_into_db
+from gateway.mongodb import save_into_db, get_converted_file
 from gateway.utils import log_in_user
 from gateway.mq import send_message_to
 
@@ -60,7 +64,13 @@ def create_upload_files(
             detail="Please check your credentials"
         )
 
-@app.post("/download/{file_id}", response_class=FileResponse)
-def download_converted_file(file_id: int = Path(ge=0)):
-    #file = get_converted_file(file_id)
-    return "out.mp4"
+@app.post("/download/{file_id}")
+def download_converted_file(file_id: str = Path(min_length=1)):
+    converted_file_obj = get_converted_file(file_id)
+    with tempfile.NamedTemporaryFile() as file:
+        file.write(converted_file_obj.read())
+        temp_file_path = os.path.join(tempfile.gettempdir(), 
+                                        file.name)
+
+        return FileResponse(path=temp_file_path, filename="output.mp3", 
+                                media_type='application/octet-stream' )
