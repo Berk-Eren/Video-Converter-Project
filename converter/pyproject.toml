@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "c"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+moviepy = "^1.0.3"
+fastapi = "^0.89.1"
+uvicorn = "^0.20.0"
+python-multipart = "^0.0.5"
+pika = "^1.3.1"
+mongo = "^0.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
