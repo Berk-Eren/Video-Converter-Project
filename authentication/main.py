@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException, Body, Depends, Header, status
 from sqlalchemy.orm import Session
 
-from authentication.database import SessionLocal, engine
-from authentication.database import schemas, crud, models
-from authentication.security.utils import create_token, get_user_from_token
-from authentication.security.schemas import oauth2_scheme
-from authentication.forms import UserCredentials
+from database import SessionLocal, engine
+from database import schemas, crud, models
+from security.utils import create_token, get_user_from_token
+from security.schemas import oauth2_scheme
+from forms import UserCredentials
 
 
 def get_db():
