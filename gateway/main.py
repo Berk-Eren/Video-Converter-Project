@@ -1,16 +1,17 @@
 import os
-import io
 import tempfile
 
-from fastapi import FastAPI, Body, UploadFile, status, HTTPException, Path, Header, Depends
+from fastapi import FastAPI, Body, UploadFile, status, HTTPException, Path, Header, Depends, BackgroundTasks
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.security.api_key import APIKeyHeader
 
-from gateway.client import auth_client
-from gateway.forms.authentication import UserCreation, UserCredentials
-from gateway.mongodb import save_into_db, get_converted_file
-from gateway.utils import log_in_user
-from gateway.mq import send_message_to
+from client import auth_client
+from forms.authentication import UserCreation, UserCredentials
+from mongodb import save_into_db, get_converted_file
+from utils import log_in_user
+from mq import send_message_to
+
+from .utils.file_ops import close_file
 
 
 app = FastAPI()
@@ -45,7 +46,7 @@ def create_upload_files(
 ):
     user_logged_in = log_in_user(token)
 
-    if user_logged_in:
+    if user_logged_in.status_code==200:
         is_saved, file_obj = save_into_db(file.file)
         if is_saved:
             file_id = str(file_obj)
@@ -64,13 +65,21 @@ def create_upload_files(
             detail="Please check your credentials"
         )
 
-@app.post("/download/{file_id}")
-def download_converted_file(file_id: str = Path(min_length=1)):
-    converted_file_obj = get_converted_file(file_id)
-    with tempfile.NamedTemporaryFile() as file:
-        file.write(converted_file_obj.read())
-        temp_file_path = os.path.join(tempfile.gettempdir(), 
-                                        file.name)
 
-        return FileResponse(path=temp_file_path, filename="output.mp3", 
-                                media_type='application/octet-stream' )
+@app.post("/download/{file_id}")
+def download_converted_file(
+    file_id: str = Path(min_length=1), 
+    *, 
+    background_task: BackgroundTasks
+):
+    converted_file_obj = get_converted_file(file_id)
+    
+    temp_file_obj = tempfile.NamedTemporaryFile()
+    temp_file_obj.write(converted_file_obj.read())
+    temp_file_path = os.path.join(tempfile.gettempdir(), 
+                                    temp_file_obj.name)
+
+    background_task.add_task(close_file, temp_file_obj)
+
+    return FileResponse(path=temp_file_path, filename="output.mp3", 
+                            media_type='application/octet-stream' )
