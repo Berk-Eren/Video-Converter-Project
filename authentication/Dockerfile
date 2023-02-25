@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-LABEL desctipyion="Video Converter Authentiation Service"
+LABEL description="Video Converter Authentiation Service"
 
 ENV PYTHONENVBUFFERED 1
 

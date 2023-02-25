@@ -2,9 +2,8 @@ from jose import JWTError, jwt
 from fastapi import HTTPException, status
 from datetime import datetime, timedelta
 from database.crud import get_user_by_name
-from settings import (ALGORITHM, 
-                                        ACCESS_TOKEN_EXPIRE_MINUTES, 
-                                            SECRET_KEY)
+from settings import (ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, 
+                        SECRET_KEY )
 
 
 def get_user_from_token(db, token):

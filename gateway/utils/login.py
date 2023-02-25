@@ -1,4 +1,4 @@
-from gateway.client import auth_client
+from client import auth_client
 
 
 def log_in_user(authorization):

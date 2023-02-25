@@ -11,7 +11,7 @@ from mongodb import save_into_db, get_converted_file
 from utils import log_in_user
 from mq import send_message_to
 
-from .utils.file_ops import close_file
+from utils.file_ops import close_file
 
 
 app = FastAPI()
