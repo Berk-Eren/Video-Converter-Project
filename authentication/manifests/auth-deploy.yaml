@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentication
+  labels:
+    app: authentication
+    service: video-converter
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: authentication
+      service: video-converter
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+  template:
+    metadata:
+      labels:
+        app: authentication
+        service: video-converter
+    spec:
+      containers:
+        - name: authentication
+          image: authentication:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: authentication-configmap
+            - secretRef:
+                name: authentication-secret
