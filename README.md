@@ -6,4 +6,5 @@ Before building the docker images, please run the following commands on k8s.
 * eval $(minikube docker-env)
 * docker build --no-cache . --tag <service_name>:latest
 * minikube start
+* minikube addons enable ingress
 * minikube tunnel
