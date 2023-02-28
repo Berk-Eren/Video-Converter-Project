@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-deployment
+  labels:
+    app: notification
+    service: video-converter
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification
+      service: video-converter
+  template:
+    metadata:
+      labels:
+        app: notification
+        service: video-converter
+    spec:
+      containers:
+        - name: notification
+          image: notification:latest
+          imagePullPolicy: Never
+          envFrom:
+            - configMapRef:
+                name: notification-configmap
+            - secretRef:
+                name: notification-secret

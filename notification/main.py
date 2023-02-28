@@ -1,6 +1,6 @@
+import os
 import sys
 import json
-import pika
 from mq import get_channel
 
 
@@ -13,7 +13,7 @@ def main():
         file_ids = json.loads(body)
         print(" [*] The file '%(source)s' is converted to '%(target)s'" % file_ids)
 
-    channel.basic_consume(queue='mp3_queue', 
+    channel.basic_consume(queue=os.environ.get("MP3_QUEUE"), 
                             on_message_callback=callback, 
                                 auto_ack=True )
 
