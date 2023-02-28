@@ -1,0 +1,66 @@
+services:
+  authentication:
+    build:
+      context: ./authentication
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./authentication/.env
+    depends_on:
+      - mongodb
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./gateway/.env
+    depends_on:
+      - rabbitmq
+      - mongodb
+
+  notification:
+    build:
+      context: ./notification
+      dockerfile: Dockerfile
+    env_file:
+      - ./notification/.env
+    depends_on:
+      - rabbitmq
+
+  converter:
+    build:
+      context: ./converter
+      dockerfile: Dockerfile
+    env_file:
+      - ./converter/.env
+    depends_on:
+      - rabbitmq
+      - mongodb
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  mongodb:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: echo 'db.stats().ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
