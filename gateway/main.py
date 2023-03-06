@@ -18,7 +18,7 @@ app = FastAPI()
 token_key = APIKeyHeader(name="Authorization")
 
 
-@app.post("/sign-up/")
+@app.post("/sign-up/", status_code=status.HTTP_201_CREATED)
 def login(user: UserCreation = Body()):
     user_credentials = {
         "email": user.email,
@@ -26,7 +26,15 @@ def login(user: UserCreation = Body()):
         "password": user.password,
         "password2": user.password2
     }
-    res = auth_client.post("/sign-up/", data=user_credentials)
+
+    res = auth_client.post("/sign-up/", json=user_credentials)
+
+    if res.status_code != 201:
+
+        raise HTTPException(
+            status_code=res.status_code, 
+            detail=res.json()["detail"]
+        )
 
     return res.json()
 
@@ -37,6 +45,7 @@ def get_access_token(user_credentials: UserCredentials):
         "password": user_credentials.password
     }
     res = auth_client.post("/access-token/", data=credentials)
+
     return res.json()
 
 @app.post("/upload/", status_code=status.HTTP_202_ACCEPTED)
@@ -50,7 +59,7 @@ def create_upload_files(
         is_saved, file_obj = save_into_db(file.file)
         if is_saved:
             file_id = str(file_obj)
-            send_message_to("video_conversion_queue", file_id)
+            send_message_to(os.environ.get("VIDEO_QUEUE"), file_id)
             return JSONResponse(content={
                 "fileId": file_id
             })
@@ -82,3 +91,5 @@ def download_converted_file(
 
     return FileResponse(path=temp_file_path, filename="output.mp3", 
                             media_type='application/octet-stream' )
+
+print("Hello world")
