@@ -20,14 +20,14 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-@app.post("/sign-up")
+@app.post("/sign-up/", status_code=status.HTTP_201_CREATED)
 def sign_up(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
+    db_user, msg = crud.get_user_by_email(db, user.email, user.username)
 
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Email already registered"
+            detail=msg
         )
 
     return crud.create_user(db=db, user=user)
@@ -39,7 +39,7 @@ def get_access_token(user: UserCredentials = Depends(), db: Session = Depends(ge
         return create_token(user.username)
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        details="Please check your credentials"
+        detail="Please check your credentials"
     )
 
 @app.post("/validate/")
