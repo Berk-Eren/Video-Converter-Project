@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: converter-configmap
+data:
+  RABBITMQ_SERVICE_NAME: "rabbitmq"
+  MP3_QUEUE: "mp3_queue"
+  VIDEO_QUEUE: "video_conversion_queue"
+  MONGODB_SERVICE_NAME: "mongodb"

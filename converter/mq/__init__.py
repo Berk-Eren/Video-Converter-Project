@@ -1,3 +1,4 @@
+import os
 import pika
 
 
@@ -9,7 +10,7 @@ def get_channel():
 
     if channel == None:
         connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host='localhost')
+            pika.ConnectionParameters(host=os.environ.get("RABBITMQ_SERVICE_NAME"))
         )
         channel = connection.channel()
 

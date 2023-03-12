@@ -29,4 +29,7 @@ class VideoToMP3Converter:
 
     def save_converted_file_into_db(self):
         with open(self.__temp_file_name, "rb") as file:
+            print("Saving converted file into")
             self.__file_obj = self.db.put(file.read())
+
+        print("Converted file is being saved into db")

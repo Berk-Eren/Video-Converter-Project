@@ -1,4 +1,4 @@
-import pika
+import os
 import json
 
 from mq import get_channel, send_message_to
@@ -10,11 +10,10 @@ gridfs_example_converter = VideoToMP3Converter(fs)
 
 channel = get_channel()
 
-channel.queue_declare(queue='video_conversion_queue', durable=True)
-channel.queue_declare(queue='mp3_queue', durable=True)
+channel.queue_declare(queue=os.environ.get("MP3_QUEUE"), durable=True)
+channel.queue_declare(queue=os.environ.get("VIDEO_QUEUE"), durable=True)
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
-
 
 
 def callback(ch, method, properties, body):
@@ -29,17 +28,17 @@ def callback(ch, method, properties, body):
             "target": str(gridfs_example_converter.file_obj)
         }
 
-        send_message_to("mp3_queue", json.dumps(body))
+        send_message_to(os.environ.get("MP3_QUEUE"), json.dumps(body))
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
         print(" [x] Done")
     except Exception as e:
         print(" [x] File %s couldn't be converted")
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        ch.basic_nack(delivery_tag=method.delivery_tag)
 
 
 channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue='video_conversion_queue', 
+channel.basic_consume(queue=os.environ.get("VIDEO_QUEUE"), 
                         on_message_callback=callback)
 
 channel.start_consuming()
